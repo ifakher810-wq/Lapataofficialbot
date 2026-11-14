@@ -1,52 +1,40 @@
+const mineflayer = require('mineflayer');
 
-name: LAPATA OFFICIAL BOT
+let attempts = 0;
+const MAX_ATTEMPTS = 3;
 
-on:
-  workflow_dispatch:
+function connectBot() {
+  attempts++;
 
-jobs:
-  minecraft:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+  console.log(`Connecting... Attempt ${attempts}`);
 
-    steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+  const bot = mineflayer.createBot({
+    host: 'FAKELAPATA1.aternos.me',
+    port: 26176,
+    username: 'LapataBot',
+    version: '1.21',
+    connectTimeout: 30000
+  });
 
-      - name: Install Mineflayer
-        run: npm install mineflayer
+  bot.once('spawn', () => {
+    console.log('LAPATA BOT CONNECTED!');
+    attempts = 0;
+  });
 
-      - name: Start Minecraft Bot
-        run: |
-          cat > bot.js <<'EOF'
-          const mineflayer = require('mineflayer');
+  bot.on('error', err => {
+    console.log('Network Error:', err.message);
+  });
 
-          const bot = mineflayer.createBot({
-            host: 'FAKELAPATA1.aternos.me',
-            port: 26176,
-            username: 'LapataBot',
-            version: '1.21',
-            connectTimeout: 20000
-          });
+  bot.on('end', () => {
+    console.log('Connection ended.');
 
-          bot.on('spawn', () => {
-            console.log('LAPATA BOT JOINED SUCCESSFULLY!');
-          });
+    if (attempts < MAX_ATTEMPTS) {
+      console.log('Retrying in 5 seconds...');
+      setTimeout(connectBot, 5000);
+    } else {
+      console.log('Maximum retry attempts reached.');
+    }
+  });
+}
 
-          bot.on('error', err => {
-            console.log('ERROR:', err.message);
-          });
-
-          bot.on('kicked', reason => {
-            console.log('KICKED:', reason);
-          });
-
-          bot.on('end', () => {
-            console.log('DISCONNECTED');
-          });
-          EOF
-
-          node bot.js
-          
+connectBot();
