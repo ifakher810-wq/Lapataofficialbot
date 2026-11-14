@@ -15,38 +15,36 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Minecraft Bot
+      - name: Install Mineflayer
         run: npm install mineflayer
 
-      - name: Connect to Minecraft
-        env:
-          SERVER_IP: FAKELAPATA1.aternos.me
-          SERVER_PORT: "26176"
+      - name: Start Minecraft Bot
         run: |
           cat > bot.js <<'EOF'
           const mineflayer = require('mineflayer');
 
           const bot = mineflayer.createBot({
-            host: process.env.SERVER_IP,
-            port: Number(process.env.SERVER_PORT),
+            host: 'FAKELAPATA1.aternos.me',
+            port: 26176,
             username: 'LapataBot',
-            version: '1.21'
+            version: '1.21',
+            connectTimeout: 20000
           });
 
           bot.on('spawn', () => {
-            console.log('LAPATA BOT CONNECTED!');
-          });
-
-          bot.on('kicked', reason => {
-            console.log('Kicked:', reason);
+            console.log('LAPATA BOT JOINED SUCCESSFULLY!');
           });
 
           bot.on('error', err => {
-            console.log('Error:', err.message);
+            console.log('ERROR:', err.message);
+          });
+
+          bot.on('kicked', reason => {
+            console.log('KICKED:', reason);
           });
 
           bot.on('end', () => {
-            console.log('Disconnected!');
+            console.log('DISCONNECTED');
           });
           EOF
 
