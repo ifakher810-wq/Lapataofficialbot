@@ -1,0 +1,54 @@
+
+name: LAPATA OFFICIAL BOT
+
+on:
+  workflow_dispatch:
+
+jobs:
+  minecraft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Minecraft Bot
+        run: npm install mineflayer
+
+      - name: Connect to Minecraft
+        env:
+          SERVER_IP: FAKELAPATA1.aternos.me
+          SERVER_PORT: "26176"
+        run: |
+          cat > bot.js <<'EOF'
+          const mineflayer = require('mineflayer');
+
+          const bot = mineflayer.createBot({
+            host: process.env.SERVER_IP,
+            port: Number(process.env.SERVER_PORT),
+            username: 'LapataBot',
+            version: '1.21'
+          });
+
+          bot.on('spawn', () => {
+            console.log('LAPATA BOT CONNECTED!');
+          });
+
+          bot.on('kicked', reason => {
+            console.log('Kicked:', reason);
+          });
+
+          bot.on('error', err => {
+            console.log('Error:', err.message);
+          });
+
+          bot.on('end', () => {
+            console.log('Disconnected!');
+          });
+          EOF
+
+          node bot.js
+          
