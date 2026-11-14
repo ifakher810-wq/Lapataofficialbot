@@ -1,40 +1,61 @@
-const mineflayer = require('mineflayer');
 
-let attempts = 0;
-const MAX_ATTEMPTS = 3;
+name: LAPATA OFFICIAL BOT
 
-function connectBot() {
-  attempts++;
+on:
+  workflow_dispatch:
 
-  console.log(`Connecting... Attempt ${attempts}`);
+jobs:
+  minecraft-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
-  const bot = mineflayer.createBot({
-    host: 'FAKELAPATA1.aternos.me',
-    port: 26176,
-    username: 'LapataBot',
-    version: '1.21',
-    connectTimeout: 30000
-  });
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-  bot.once('spawn', () => {
-    console.log('LAPATA BOT CONNECTED!');
-    attempts = 0;
-  });
+      - name: Install Mineflayer
+        run: |
+          npm init -y
+          npm install mineflayer
 
-  bot.on('error', err => {
-    console.log('Network Error:', err.message);
-  });
+      - name: Start Minecraft Bot
+        run: |
+          cat > bot.js <<'EOF'
+          const mineflayer = require('mineflayer');
 
-  bot.on('end', () => {
-    console.log('Connection ended.');
+          const bot = mineflayer.createBot({
+            host: 'FAKELAPATA1.aternos.me',
+            port: 26176,
+            username: 'LAPATA_BOT',
+            version: '1.21'
+          });
 
-    if (attempts < MAX_ATTEMPTS) {
-      console.log('Retrying in 5 seconds...');
-      setTimeout(connectBot, 5000);
-    } else {
-      console.log('Maximum retry attempts reached.');
-    }
-  });
-}
+          bot.once('spawn', () => {
+            console.log('LAPATA OFFICIAL JOINED!');
 
-connectBot();
+            setInterval(() => {
+              const yaw = Math.random() * Math.PI * 2;
+              const pitch = (Math.random() - 0.5) * 0.3;
+
+              bot.look(yaw, pitch, true);
+              console.log('Movement tick!');
+            }, 5000);
+          });
+
+          bot.on('error', err => {
+            console.log('NETWORK ERROR:', err.message);
+          });
+
+          bot.on('kicked', reason => {
+            console.log('SERVER KICK:', reason);
+          });
+
+          bot.on('end', () => {
+            console.log('BOT DISCONNECTED');
+          });
+          EOF
+
+          node bot.js
+          
